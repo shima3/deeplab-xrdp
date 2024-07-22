@@ -144,11 +144,11 @@ cd training
 ## Step 2
 trainingの中にJPEGImagesフォルダを作成し、学習用の元画像をJPEG形式で保存してください。
 
-## Step 2
+## Step 3
 trainingの中にSegmentationClassRawフォルダを作成し、学習用のグレースケール画像をPNG形式で保存してください。
 1から20のインデックス値を選び、グレースケール画像の輝度値として設定してください。
 
-## Step 3
+## Step 4
 グレースケール画像をTFRecords形式に変換するため、次のコマンドを実行してください。
 ```
 build_voc2012_data.sh --image_format="jpg"
@@ -157,7 +157,7 @@ build_voc2012_data.sh --image_format="jpg"
 拡張子が .jpeg の場合、 --image_format="jpeg" としてください。
 コマンドの実行終了後、TFRecordsにtrain-0000で始まるファイルが4つあればOKです。
 
-## Step 4
+## Step 5
 学習させる前に、TrainingLogフォルダの有無を確認してください。
 TrainingLogフォルダがあると前回の学習の影響を受けます。
 学習を最初からやり直したい時は TrainingLogフォルダを削除してから学習させてください。
@@ -183,7 +183,7 @@ INFO:tensorflow:Finished training! Saving model to disk.
 このメッセージの後に数行の警告メッセージが表示されますが無視してください。
 その後、timeが実行時間を表示します。
 
-## Step 5
+## Step 6
 学習済みのモデルを外部で利用できるようにするため、次のコマンドを実行してください。
 ```
 export_model.sh
