@@ -25,6 +25,7 @@ Retype new password: パスワード
 Windowsのリモートデスクトップ接続や、その互換アプリ（Mac用Microsoft Remote Desktopなど）を使ってサーバに接続します。
 ユーザ名とパスワードを入力してログインすると Ubuntu のデスクトップが表示されます。
 以降、MenuのシステムツールにあるMATE端末を使ってコマンドを実行します。
+端末のメニューバーにあるEditを開くとコピペが使えます。
 デスクトップにある「ユーザ名's Home」をダブルクリックすると、ホームディレクトリが開きます。
 
 # 学習済みモデルを用いたサンプル画像の領域分割
@@ -32,8 +33,9 @@ Windowsのリモートデスクトップ接続や、その互換アプリ（Mac�
 ## Step 1
 testフォルダで作業を行うため、端末で次のコマンドを実行してください。
 ```
-mkdir -p ~/test
-cd ~/test
+cd
+mkdir -p test
+cd test
 ```
 ホームディレクトリを開いて、testフォルダがあればOKです。
 
@@ -67,48 +69,42 @@ test/JPEGImagesのimage1.jpg, image2.jpg, image3.jpgに対応するラベル画�
 
 # 競技用データ集を用いた学習モデルの作成
 
-DeepLab フォルダで作業するため、ターミナルで次のコマンドを実行してください。
-```
-cd $HOME/DeepLab
-```
-
 ## Step 1
-VOC2012という競技で用いられたデータを、次のコマンドで取得してください。
+VOC2012という競技で用いられたデータを取得するため、次のコマンドで実行してください。
 ```
-docker run --rm -it --volume $PWD:/hostwd kshima/deeplab.pkg cp -r /opt/VOCdevkit/VOC2012 /hostwd
+cd
+cp -r /opt/VOCdevkit/VOC2012 .
 ```
-コマンドの実行終了後、VOC2012の中のJPEGImagesに写真約17千枚、SegmentationClassにラベル画像約3千枚があればOKです。
+ホームディレクトリにVOC2012フォルダが作成されます。
+VOC2012フォルダにJPEGImagesフォルダとSegmentationClassフォルダがあります。
+JPEGImagesフォルダに写真約1万7千枚、SegmentationClassにラベル画像約3千枚があればOKです。
 
 ## Step 2
-VOC2012フォルダの中で作業するため、次のコマンドを実行してください。
-```
-cd VOC2012
-```
-
 ラベル画像をグレースケール画像に変換するため、次のコマンドを実行してください。
 ```
-docker run --rm -it --volume $PWD:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/VOCdevkit/VOC2012 kshima/deeplab bash remove_gt_colormap.sh
+cd VOC2012
+remove_gt_colormap.sh
 ```
-コマンドの実行終了後、SegmentationClassRawに画像約3千枚ができます。
+VOC2012のSegmentationClassRawに画像約3千枚ができます。
 グレースケール画像の黒い範囲は輝度でインデックス値を示しています。
 インデックス値とラベル（色）の対応については、<a href="https://qiita.com/mine820/items/725fe55c095f28bffe87">こちら</a>を参照してください。
-グレースケール画像の白い線は輝度255で対応するラベルがないことを示しています。
+グレースケール画像の白い線（輝度255）は、対応するラベルがないことを示しています。
 
 ## Step 3
 グレースケール画像をTFRecords形式に変換するため、次のコマンドを実行してください。
 ```
-docker run --rm -it --volume $PWD/JPEGImages:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/VOCdevkit/VOC2012/JPEGImages --volume $PWD/SegmentationClassRaw:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/VOCdevkit/VOC2012/SegmentationClassRaw --volume $PWD/TFRecords:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/tfrecord kshima/deeplab bash build_voc2012_data.sh --image_format="jpg"
+build_voc2012_data.sh --image_format="jpg"
 ```
-コマンドの実行終了後、tfrecordにtrain-0000で始まるファイルが4つあればOKです。
+VOC2012のTFRecordsにtrain-0000で始まるファイルが4つあればOKです。
 
 ## Step 4
-学習させる前に、TrainingLog フォルダの有無を確認してください。
-TrainingLog フォルダがあると、前回の学習の続きから始めるので、早く終わりますが、前回の影響を受けます。
-元画像やラベル画像を変更した場合などで、最初からやり直したい時は TrainingLog フォルダを削除してから学習させてください。
+学習させる前に、TrainingLogフォルダの有無を確認してください。
+TrainingLogフォルダがあると、前回の学習の続きから始めるので、学習が早く終わる代わりに、前回の学習の影響を受けます。
+元画像やラベル画像を変更した場合などで、最初からやり直したい時はTrainingLogフォルダを削除してから学習させてください。
 
 学習させるため、次のコマンドを実行してください。
 ```
-docker run -it --volume $PWD:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/VOCdevkit/VOC2012 --volume $PWD/TFRecords:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/tfrecord --volume $PWD/TrainingLog:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/exp/train_on_trainval_set/train kshima/deeplab bash train.sh --step=30
+time train.sh --step=30
 ```
 上のコマンドの --step=30 で学習回数を指定しています。
 ここでは学習済みモデルを利用しているので、少ない回数でも高い精度を得られますが、通常は数千回の学習が必要です。
@@ -128,12 +124,10 @@ INFO:tensorflow:Finished training! Saving model to disk.
 ## Step 5
 学習済みのモデルを外部で利用できるようにするため、次のコマンドを実行してください。
 ```
-docker run -it --volume $PWD:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/VOCdevkit/VOC2012 --volume $PWD/TFRecords:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/tfrecord --volume $PWD/TrainingLog:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/exp/train_on_trainval_set/train --volume $PWD/TrainedModel:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/exp/train_on_trainval_set/export kshima/deeplab bash export_model.sh
+export_model.sh
 ```
-コマンドの実行終了後、TrainedModelフォルダの中にfrozen_inference_graph.pbがあればOKです。
-
-## Step 6
-DeepLab/testの中のTrainedModelを、ここで作ったTrainedModelに置き換えてから、「学習済みモデルを用いたサンプル画像の領域分割」のStep 4を行うと、領域分割できます。
+VOC2012のTrainedModelにfrozen_inference_graph.pbがあればOKです。
+testの中のTrainedModelを、ここで作ったTrainedModelに置き換えてから、「学習済みモデルを用いたサンプル画像の領域分割」のStep 4を行うと、領域分割できます。
 
 # 自作データ集を用いた学習モデルの作成
 
