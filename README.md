@@ -104,7 +104,7 @@ TrainingLogフォルダがあると、前回の学習の続きから始めるの
 
 学習させるため、次のコマンドを実行してください。
 ```
-time train.sh --step=30
+train.sh --step=30
 ```
 上のコマンドの --step=30 で学習回数を指定しています。
 ここでは学習済みモデルを利用しているので、少ない回数でも高い精度を得られますが、通常は数千回の学習が必要です。
@@ -130,39 +130,45 @@ VOC2012のTrainedModelにfrozen_inference_graph.pbがあればOKです。
 testの中のTrainedModelを、ここで作ったTrainedModelに置き換えてから、「学習済みモデルを用いたサンプル画像の領域分割」のStep 4を行うと、領域分割できます。
 
 # 自作データ集を用いた学習モデルの作成
-
-DeepLab フォルダで作業するため、ターミナルで次のコマンドを実行してください。
-```
-cd $HOME/DeepLab
-```
+ここでは、trainingというフォルダで作業する場合について説明します。
+trainingは自分にとって分かりやすい名前に置き換えてください。
 
 ## Step 1
-JPEGImagesフォルダに学習用の元画像をJPEG形式で保存してください。
+trainingフォルダで作業するため、次のコマンドを実行してください。
+```
+cd
+mkdir -p training
+cd training
+```
 
 ## Step 2
-SegmentationClassRawフォルダに学習用のグレースケール画像をPNG形式で保存してください。
+trainingの中にJPEGImagesフォルダを作成し、学習用の元画像をJPEG形式で保存してください。
+
+## Step 2
+trainingの中にSegmentationClassRawフォルダを作成し、学習用のグレースケール画像をPNG形式で保存してください。
 1から20のインデックス値を選び、グレースケール画像の輝度値として設定してください。
 
 ## Step 3
 グレースケール画像をTFRecords形式に変換するため、次のコマンドを実行してください。
 ```
-docker run --rm -it --volume $PWD/JPEGImages:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/VOCdevkit/VOC2012/JPEGImages --volume $PWD/SegmentationClassRaw:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/VOCdevkit/VOC2012/SegmentationClassRaw --volume $PWD/TFRecords:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/tfrecord kshima/deeplab bash build_voc2012_data.sh --image_format="jpg"
+build_voc2012_data.sh --image_format="jpg"
 ```
 上のコマンドの --image_format="jpg" でJPEGファイルの拡張子を指定しています。
 拡張子が .jpeg の場合、 --image_format="jpeg" としてください。
-コマンドの実行終了後、tfrecordにtrain-0000で始まるファイルが4つあればOKです。
+コマンドの実行終了後、TFRecordsにtrain-0000で始まるファイルが4つあればOKです。
 
 ## Step 4
-学習させる前に、TrainingLog フォルダの有無を確認してください。
-TrainingLog フォルダがあると、前回の学習の続きから始めるので、早く終わりますが、前回の影響を受けます。
-元画像やラベル画像を変更した場合などで、最初からやり直したい時は TrainingLog フォルダを削除してから学習させてください。
+学習させる前に、TrainingLogフォルダの有無を確認してください。
+TrainingLogフォルダがあると前回の学習の影響を受けます。
+学習を最初からやり直したい時は TrainingLogフォルダを削除してから学習させてください。
 
 学習させるため、次のコマンドを実行してください。
 ```
-docker run -it --volume $PWD:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/VOCdevkit/VOC2012 --volume $PWD/TFRecords:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/tfrecord --volume $PWD/TrainingLog:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/exp/train_on_trainval_set/train kshima/deeplab bash train.sh --step=30
+time train.sh --step=1000
 ```
-上のコマンドの --step=30 で学習回数を指定しています。
-ここでは学習済みモデルを利用しているので、少ない回数でも高い精度を得られますが、通常は数千回の学習が必要です。
+上のコマンドの --step=1000 で学習回数を指定しています。
+学習回数が多いほど精度が高くなりますが、学習に時間がかかります。
+timeはtrain.shの実行時間を計測し、表示するので、待ち時間の参考にしてください。
 
 最初に大量の警告メッセージが出ますが無視してください。
 次のようなメッセージが出始めたら、学習が始まっています。
@@ -175,13 +181,12 @@ step の後の数値が増えていけば、学習が進んでいます。
 INFO:tensorflow:Finished training! Saving model to disk.
 ```
 このメッセージの後に数行の警告メッセージが表示されますが無視してください。
+その後、timeが実行時間を表示します。
 
 ## Step 5
 学習済みのモデルを外部で利用できるようにするため、次のコマンドを実行してください。
 ```
-docker run -it --volume $PWD:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/VOCdevkit/VOC2012 --volume $PWD/TFRecords:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/tfrecord --volume $PWD/TrainingLog:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/exp/train_on_trainval_set/train --volume $PWD/TrainedModel:/opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/exp/train_on_trainval_set/export kshima/deeplab bash export_model.sh
+export_model.sh
 ```
-コマンドの実行終了後、TrainedModelフォルダの中にfrozen_inference_graph.pbがあればOKです。
-
-## Step 6
-DeepLab/testの中のTrainedModelを、ここで作ったTrainedModelに置き換えてから、「学習済みモデルを用いたサンプル画像の領域分割」のStep 4を行うと、領域分割できます。
+TrainedModelフォルダの中にfrozen_inference_graph.pbがあればOKです。
+testの中のTrainedModelを、ここで作ったTrainedModelに置き換えてから、「学習済みモデルを用いたサンプル画像の領域分割」のStep 4を行うと、領域分割できます。
