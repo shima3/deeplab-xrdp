@@ -23,42 +23,43 @@ Retype new password: パスワード
 # クライアントの接続
 
 Windowsのリモートデスクトップ接続や、その互換アプリ（Mac用Microsoft Remote Desktopなど）を使ってサーバに接続します。
-ユーザ名とパスワードを入力してログインすると Ubuntu の画面が表示されます。
+ユーザ名とパスワードを入力してログインすると Ubuntu のデスクトップが表示されます。
 以降、MenuのシステムツールにあるMATE端末を使ってコマンドを実行します。
+デスクトップにある「ユーザ名's Home」をダブルクリックすると、ホームディレクトリが開きます。
 
 # 学習済みモデルを用いたサンプル画像の領域分割
 
-DeepLab フォルダの中に test というフォルダを作成するため、
-ターミナルで次のコマンドを実行してください。
-```
-mkdir -p ~/DeepLab/test
-cd ~/DeepLab/test
-```
-
-test フォルダで作業するため、ターミナルで次のコマンドを実行してください。
-```
-```
-
 ## Step 1
-次のコマンドで、サンプル画像を取得します。
+testフォルダで作業を行うため、端末で次のコマンドを実行してください。
 ```
-docker run --rm -it --volume $PWD:/hostwd kshima/deeplab cp -r /opt/tensorflow/models/research/deeplab/g3doc/img /hostwd/JPEGImages
+mkdir -p ~/test
+cd ~/test
 ```
-コマンドの実行終了後、JPEGImagesフォルダにimage1.jpg, image2.jpg, image3.jpgがあればOKです。
+ホームディレクトリを開いて、testフォルダがあればOKです。
 
 ## Step 2
-次のコマンドで、学習済みモデルを取得します。
+次のコマンドで、サンプル画像を取得します。
 ```
-docker run --rm -it --volume $PWD:/hostwd kshima/deeplab.pkg cp -r /opt/deeplabv3_pascal_train_aug /hostwd/TrainedModel
+cp -r /opt/tensorflow/models/research/deeplab/g3doc/img JPEGImages
 ```
-コマンドの実行終了後、TrainedModelフォルダにfrozen_inference_graph.pbがあればOKです。
+testフォルダを開くと、JPEGImagesフォルダが作成されています。
+JPEGImagesフォルダを開いて、image1.jpg, image2.jpg, image3.jpgがあればOKです。
 
 ## Step 3
+次のコマンドで、学習済みモデルを取得します。
+```
+cp -r /opt/tensorflow/models/research/deeplab/datasets/pascal_voc_seg/init_models/deeplabv3_pascal_train_aug TrainedModel
+```
+testフォルダを開くと、TrainedModelフォルダが作成されています。
+TrainedModelフォルダを開いて、frozen_inference_graph.pbがあればOKです。
+
+## Step 4
 次のコマンドで、サンプル画像を領域分割します。
 ```
-docker run --rm -it --volume $PWD:/hostwd kshima/deeplab predict.sh
+predict.sh
 ```
-コマンドの実行終了後、PredictedSegmentationフォルダにimage1.png, image2.png, image3.pngがあればOKです。
+testフォルダを開くと、PredictedSegmentationフォルダが作成されています。
+PredictedSegmentationフォルダを開いて、image1.png, image2.png, image3.pngがあればOKです。
 
 領域の種類（class）を示す色をラベル、ラベルで領域を示す画像をラベル画像と呼びます。
 test/JPEGImagesのimage1.jpg, image2.jpg, image3.jpgに対応するラベル画像がtest/PredictedSegmentationのimage1.png, image2.png, image3.pngに保存されます。
