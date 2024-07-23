@@ -1,5 +1,3 @@
-# deeplab-xrdp
-
 # はじめに
 
 DeepLab v3+ を用いた画像の領域分割（semantic segmentation）のためのイメージです。
@@ -83,8 +81,12 @@ JPEGImagesフォルダに写真約1万7千枚、SegmentationClassにラベル画
 ラベル画像をグレースケール画像に変換するため、次のコマンドを実行してください。
 ```
 cd VOC2012
-remove_gt_colormap.sh
+time remove_gt_colormap.sh
 ```
+大量の画像を処理するため、30秒近くかかります。途中で止めないでください。
+処理が完了すると、real, user, sysで始まる3行が表示されます。
+realで始まる行が所要時間を示しています。
+
 VOC2012のSegmentationClassRawに画像約3千枚ができます。
 グレースケール画像の黒い範囲は輝度でインデックス値を示しています。
 インデックス値とラベル（色）の対応については、<a href="https://qiita.com/mine820/items/725fe55c095f28bffe87">こちら</a>を参照してください。
@@ -93,8 +95,9 @@ VOC2012のSegmentationClassRawに画像約3千枚ができます。
 ## Step 3
 グレースケール画像をTFRecords形式に変換するため、次のコマンドを実行してください。
 ```
-build_voc2012_data.sh --image_format="jpg"
+time build_voc2012_data.sh --image_format="jpg"
 ```
+この処理も30秒近くかかります。
 VOC2012のTFRecordsにtrain-0000で始まるファイルが4つあればOKです。
 
 ## Step 4
@@ -104,11 +107,8 @@ TrainingLogフォルダがあると、前回の学習の続きから始めるの
 
 学習させるため、次のコマンドを実行してください。
 ```
-train.sh --step=30
+time train.sh --step=30
 ```
-上のコマンドの --step=30 で学習回数を指定しています。
-ここでは学習済みモデルを利用しているので、少ない回数でも高い精度を得られますが、通常は数千回の学習が必要です。
-
 最初に大量の警告メッセージが出ますが無視してください。
 次のようなメッセージが出始めたら、学習が始まっています。
 ```
@@ -119,13 +119,17 @@ step の後の数値が増えていけば、学習が進んでいます。
 ```
 INFO:tensorflow:Finished training! Saving model to disk.
 ```
-このメッセージの後に数行の警告メッセージが表示されますが無視してください。
+学習が完了するまで１分半以上かかります。
+
+上のコマンドの --step=30 で学習回数を指定しています。
+ここでは学習済みモデルを利用しているので、少ない回数でも高い精度を得られますが、通常は数千回の学習が必要です。
 
 ## Step 5
 学習済みのモデルを外部で利用できるようにするため、次のコマンドを実行してください。
 ```
-export_model.sh
+time export_model.sh
 ```
+この処理は約１０秒かかります。
 VOC2012のTrainedModelにfrozen_inference_graph.pbがあればOKです。
 testの中のTrainedModelを、ここで作ったTrainedModelに置き換えてから、「学習済みモデルを用いたサンプル画像の領域分割」のStep 4を行うと、領域分割できます。
 
@@ -151,7 +155,7 @@ trainingの中にSegmentationClassRawフォルダを作成し、学習用のグ�
 ## Step 4
 グレースケール画像をTFRecords形式に変換するため、次のコマンドを実行してください。
 ```
-build_voc2012_data.sh --image_format="jpg"
+time build_voc2012_data.sh --image_format="jpg"
 ```
 上のコマンドの --image_format="jpg" でJPEGファイルの拡張子を指定しています。
 拡張子が .jpeg の場合、 --image_format="jpeg" としてください。
@@ -168,25 +172,12 @@ time train.sh --step=1000
 ```
 上のコマンドの --step=1000 で学習回数を指定しています。
 学習回数が多いほど精度が高くなりますが、学習に時間がかかります。
-timeはtrain.shの実行時間を計測し、表示するので、待ち時間の参考にしてください。
-
-最初に大量の警告メッセージが出ますが無視してください。
-次のようなメッセージが出始めたら、学習が始まっています。
-```
-INFO:tensorflow:global step 10: loss = 0.1566 (3.232 sec/step)
-```
-step の後の数値が増えていけば、学習が進んでいます。
---stepで指定した回数に達すると学習が終了し、次のようなメッセージが出ればOKです。
-```
-INFO:tensorflow:Finished training! Saving model to disk.
-```
-このメッセージの後に数行の警告メッセージが表示されますが無視してください。
-その後、timeが実行時間を表示します。
+処理終了後、realで始まる行に所要時間を表示するので、次回からの待ち時間の参考にしてください。
 
 ## Step 6
 学習済みのモデルを外部で利用できるようにするため、次のコマンドを実行してください。
 ```
-export_model.sh
+time export_model.sh
 ```
 TrainedModelフォルダの中にfrozen_inference_graph.pbがあればOKです。
 testの中のTrainedModelを、ここで作ったTrainedModelに置き換えてから、「学習済みモデルを用いたサンプル画像の領域分割」のStep 4を行うと、領域分割できます。
