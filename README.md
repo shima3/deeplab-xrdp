@@ -12,8 +12,8 @@ docker exec deeplab-xrdp service xrdp start
 ```
 次のコマンドでユーザを追加し、パスワードを設定します。
 ```
-docker exec deeplab-xrdp useradd -m -s /bin/bash ユーザ名
-docker exec deeplab-xrdp passwd ユーザ名
+docker exec -it deeplab-xrdp useradd -m -s /bin/bash ユーザ名
+docker exec -it deeplab-xrdp passwd ユーザ名
 New password: パスワード
 Retype new password: パスワード
 ```
